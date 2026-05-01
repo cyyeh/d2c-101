@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>D2C 單位經濟學 — 八個指標的連動關係</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(98.5% 0.008 70);
+    --bg-card: oklch(99.5% 0.004 70);
+    --ink: oklch(20% 0.01 60);
+    --ink-soft: oklch(45% 0.01 60);
+    --ink-mute: oklch(62% 0.01 60);
+    --line: oklch(89% 0.008 60);
+    --line-strong: oklch(78% 0.012 60);
+    --accent: oklch(64% 0.13 40);
+    --accent-soft: oklch(94% 0.04 40);
+    --good: oklch(58% 0.10 155);
+    --good-soft: oklch(94% 0.04 155);
+    --warn: oklch(60% 0.13 60);
+    --warn-soft: oklch(94% 0.04 70);
+    --bad: oklch(58% 0.16 25);
+    --bad-soft: oklch(95% 0.03 25);
+    --shadow: 0 1px 2px oklch(20% 0.01 60 / 0.04), 0 8px 24px oklch(20% 0.01 60 / 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight', 'Noto Sans TC', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: "tnum"; }
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 56px 32px 96px;
+  }
+
+  /* ── Header ── */
+  header.intro { margin-bottom: 48px; max-width: 760px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: clamp(32px, 4vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  header.intro p {
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── Flow diagram ── */
+  .flow-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 24px;
+  }
+  .flow-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .flow-title h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .flow-title .hint {
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .flow-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+  }
+
+  .flow {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .node {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: white;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+  }
+  .node:hover { border-color: var(--line-strong); }
+  .node.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .node .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    width: 56px;
+  }
+  .node.active .tag { color: var(--accent); }
+  .node .label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .node .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .node .val .delta {
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-left: 6px;
+  }
+
+  /* operator rows between nodes */
+  .op {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 14px;
+    padding: 0 16px;
+    align-items: center;
+    height: 18px;
+  }
+  .op .op-sym {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    text-align: center;
+    width: 56px;
+  }
+  .op .op-text {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-mute);
+    letter-spacing: 0.02em;
+  }
+  .op .line {
+    height: 14px;
+    border-left: 1px dashed var(--line-strong);
+    margin-left: 27px;
+    grid-column: 1;
+  }
+
+  /* node color variants */
+  .node[data-kind="revenue"] .tag { color: var(--good); }
+  .node[data-kind="cost"] .tag { color: var(--bad); }
+  .node[data-kind="contribution"] { background: oklch(99% 0.01 70); }
+  .node[data-kind="contribution"] .tag { color: var(--accent); }
+  .node[data-kind="external"] {
+    border-style: dashed;
+    background: transparent;
+  }
+  .node[data-kind="external"] .tag { color: var(--ink-mute); }
+
+  /* health pill */
+  .health {
+    margin-top: 24px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: white;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .health.good { background: var(--good-soft); border-color: oklch(85% 0.06 155); }
+  .health.warn { background: var(--warn-soft); border-color: oklch(85% 0.07 70); }
+  .health.bad  { background: var(--bad-soft);  border-color: oklch(86% 0.06 25); }
+  .health .h-label {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    margin-bottom: 2px;
+  }
+  .health .h-value {
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .health .h-ratio {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Right column: definition + inputs ── */
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  .def-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    background: var(--bg-card);
+    min-height: 260px;
+  }
+  .def-card .term-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .def-card h3 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+  }
+  .def-card .def-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    text-wrap: pretty;
+    line-height: 1.55;
+  }
+  .def-card .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: oklch(96% 0.008 70);
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .def-card .connects {
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .def-card .connects strong {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .def-card .connects ul { margin: 0; padding: 0; list-style: none; }
+  .def-card .connects li { margin-bottom: 6px; padding-left: 16px; position: relative; }
+  .def-card .connects li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  /* inputs */
+  .inputs-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 28px;
+    background: var(--bg-card);
+  }
+  .inputs-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .inputs-card .sub {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin: 0 0 18px;
+  }
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .input-row label {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .input-row .val-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .input-row input[type="range"] {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin: 6px 0 0;
+    accent-color: var(--accent);
+  }
+
+  /* presets */
+  .presets {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .preset {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all .15s;
+  }
+  .preset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* footer hint */
+  .footer-hint {
+    margin-top: 36px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="intro">
+    <div class="eyebrow">D2C 財務 · 詞彙表 &amp; 連動關係</div>
+    <h1>每個 D2C 品牌背後的八個關鍵數字，是怎麼串在一起的。</h1>
+    <p>下方每個指標都是同一條鏈上的節點：每筆訂單的營收流入，扣掉各種成本後，剩下的錢要拿去買下一個顧客。點擊任一個術語看定義，或拉動滑桿看整條鏈如何同步反應。</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── Left: flow diagram ── -->
+    <div class="flow-card">
+      <div class="flow-title">
+        <h2>單位經濟學鏈條</h2>
+        <span class="hint">每筆訂單 →</span>
+      </div>
+      <p class="flow-sub">由上往下閱讀，每一列是一個指標，左側是它們之間的數學運算。</p>
+
+      <div class="flow" id="flow">
+
+        <div class="node" data-kind="revenue" data-term="aov">
+          <span class="tag">AOV</span>
+          <span class="label">平均訂單金額</span>
+          <span class="val mono" id="v-aov">$80.00</span>
+        </div>
+
+        <div class="op"><span class="op-sym">−</span><span class="op-text">扣掉履約成本</span></div>
+
+        <div class="node" data-kind="cost" data-term="cogs">
+          <span class="tag">COGS</span>
+          <span class="label">商品銷售成本</span>
+          <span class="val mono" id="v-cogs">$28.00</span>
+        </div>
+
+        <div class="op"><span class="op-sym">=</span><span class="op-text">剩下的就是貢獻</span></div>
+
+        <div class="node" data-kind="contribution" data-term="cm">
+          <span class="tag">CM</span>
+          <span class="label">貢獻毛利</span>
+          <span class="val mono"><span id="v-cm">$52.00</span><span class="delta" id="v-cm-pct">65%</span></span>
+        </div>
+
+        <div class="op"><span class="op-sym">−</span><span class="op-text">花錢把顧客拉進來</span></div>
+
+        <div class="node" data-kind="cost" data-term="cac">
+          <span class="tag">CAC</span>
+          <span class="label">獲客成本</span>
+          <span class="val mono" id="v-cac">$35.00</span>
+        </div>
+
+        <div class="op"><span class="op-sym">×</span><span class="op-text">顧客回購、重複貢獻</span></div>
+
+        <div class="node" data-kind="revenue" data-term="ltv">
+          <span class="tag">LTV</span>
+          <span class="label">顧客終身價值</span>
+          <span class="val mono" id="v-ltv">$156.00</span>
+        </div>
+
+        <!-- separator -->
+        <div style="height: 8px;"></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); margin: 8px 0 4px; padding-left: 16px;">↓ 在背後支撐引擎運轉</div>
+
+        <div class="node" data-kind="external" data-term="wc">
+          <span class="tag">WC</span>
+          <span class="label">營運資金</span>
+          <span class="val mono" id="v-wc">$42k 卡在貨上</span>
+        </div>
+
+        <div class="op"><span class="op-sym">↻</span><span class="op-text">現金透過庫存循環回收</span></div>
+
+        <div class="node" data-kind="external" data-term="inv">
+          <span class="tag">INV</span>
+          <span class="label">庫存週轉</span>
+          <span class="val mono" id="v-inv">60 天 · 一年 6 次</span>
+        </div>
+
+        <div style="height: 8px;"></div>
+
+        <div class="node" data-kind="contribution" data-term="ue" style="background: oklch(96% 0.04 40); border-color: oklch(80% 0.08 40);">
+          <span class="tag">UE</span>
+          <span class="label">單位經濟學</span>
+          <span class="val mono" id="v-ue">$17 / 顧客</span>
+        </div>
+      </div>
+
+      <div class="health" id="health">
+        <div>
+          <div class="h-label">回本訊號 · LTV ÷ CAC</div>
+          <div class="h-value" id="health-text">健康 — 可以放心加碼買流量</div>
+        </div>
+        <div class="h-ratio" id="health-ratio">4.5×</div>
+      </div>
+    </div>
+
+    <!-- ── Right: definition + inputs ── -->
+    <div class="right-col">
+
+      <div class="def-card" id="def-card">
+        <span class="term-tag" id="def-tag">UE</span>
+        <h3 id="def-title">單位經濟學 · Unit Economics</h3>
+        <p class="def-text" id="def-text">從一個顧客、一筆訂單身上，扣掉所有為了服務他們而花的錢之後，你真正賺到多少。如果這個數字不是正的，做愈大就賠愈快。</p>
+        <div class="formula" id="def-formula">UE = (AOV − COGS) − CAC + 回購貢獻</div>
+        <div class="connects">
+          <strong>連動關係</strong>
+          <ul id="def-connects">
+            <li>AOV、COGS、CAC 是它的直接輸入</li>
+            <li>LTV 把它延伸到回購之後的整段顧客生命週期</li>
+            <li>Working Capital 決定你有沒有現金做下一批訂單</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="inputs-card">
+        <h3>試試各個變數</h3>
+        <p class="sub">拉動任何滑桿，所有節點都會即時更新。</p>
+
+        <div class="input-row">
+          <label for="i-aov">平均訂單金額 (AOV)</label>
+          <span class="val-display" id="d-aov">$80</span>
+          <input type="range" id="i-aov" min="20" max="200" step="1" value="80">
+        </div>
+
+        <div class="input-row">
+          <label for="i-cogs">COGS 佔 AOV 的比例</label>
+          <span class="val-display" id="d-cogs">35%</span>
+          <input type="range" id="i-cogs" min="10" max="70" step="1" value="35">
+        </div>
+
+        <div class="input-row">
+          <label for="i-cac">獲客成本 (CAC)</label>
+          <span class="val-display" id="d-cac">$35</span>
+          <input type="range" id="i-cac" min="5" max="120" step="1" value="35">
+        </div>
+
+        <div class="input-row">
+          <label for="i-repeat">每位顧客一生會下幾次訂單</label>
+          <span class="val-display" id="d-repeat">1.95</span>
+          <input type="range" id="i-repeat" min="1" max="5" step="0.05" value="1.95">
+        </div>
+
+        <div class="input-row">
+          <label for="i-inv">庫存週期（現金卡在貨架上多少天）</label>
+          <span class="val-display" id="d-inv">60 天</span>
+          <input type="range" id="i-inv" min="14" max="180" step="1" value="60">
+        </div>
+
+        <div class="presets">
+          <button class="preset" data-preset="healthy">健康品牌</button>
+          <button class="preset" data-preset="apparel">服飾現實</button>
+          <button class="preset" data-preset="subscription">訂閱制</button>
+          <button class="preset" data-preset="broken">單位經濟崩壞</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer-hint">點擊左側任何節點看定義 · 拉動滑桿測試不同情境</div>
+</div>
+
+<script>
+  // ── Definitions ────────────────────────────────────────────────
+  const TERMS = {
+    aov: {
+      tag: "AOV",
+      title: "平均訂單金額 · Average Order Value",
+      def: "顧客一次下單平均花多少錢。AOV 愈高，你愈有空間負擔更高的 CAC，不必賭顧客以後一定會回購。",
+      formula: "AOV = 總營收 ÷ 訂單數",
+      connects: [
+        "設下 COGS 的天花板（成本通常是 AOV 的某個 %）",
+        "直接決定每筆訂單的 Contribution Margin",
+        "AOV 愈高 → 同樣的回本期下，可以容忍的 CAC 也愈高"
+      ]
+    },
+    cogs: {
+      tag: "COGS",
+      title: "商品銷售成本 · Cost of Goods Sold",
+      def: "把產品送到顧客手上必須花的每一塊錢 — 製造、包材、運費、履約、金流手續費、關稅、退貨。不包含行銷費和員工薪水。",
+      formula: "COGS = 單位生產成本 + 包裝 + 運費 + 關稅 + 金流手續費",
+      connects: [
+        "直接從 AOV 扣掉，得到 Contribution Margin",
+        "決定你需要多少 Working Capital 來備庫存",
+        "關稅、海運費漲價，第一個就是打到這裡"
+      ]
+    },
+    cm: {
+      tag: "CM",
+      title: "貢獻毛利 · Contribution Margin",
+      def: "扣掉所有「把產品送到顧客手上」的成本之後剩下的錢。這才是你真正可以拿去做付費投放的本金。CM 太小，再會買廣告也救不了你。",
+      formula: "Contribution Margin = AOV − COGS",
+      connects: [
+        "必須要大於 CAC，最好是好幾倍",
+        "定義了你能承受的 CAC 上限",
+        "在回購之後，會累加成 LTV"
+      ]
+    },
+    cac: {
+      tag: "CAC",
+      title: "獲客成本 · Customer Acquisition Cost",
+      def: "你為了拉到一個新顧客花的錢 — 廣告、代理商、素材、KOL、優惠券。不包含留存維護的支出。如果 CAC 超過第一張單的 Contribution Margin，你其實是在用現金補貼成長。",
+      formula: "CAC = 付費獲客花費 ÷ 新增顧客數",
+      connects: [
+        "必須由 Contribution Margin 賺回來（一張或多張單內）",
+        "LTV ÷ CAC 是經典的健康比例（目標 ≥ 3×）",
+        "AOV 和 CM 決定 CAC 安全上限可以拉多高"
+      ]
+    },
+    ltv: {
+      tag: "LTV",
+      title: "顧客終身價值 · Lifetime Value",
+      def: "一個顧客一輩子下的所有訂單加起來，總共為你貢獻多少錢。顧客買得愈久、愈頻繁，今天能付的 CAC 就愈高。",
+      formula: "LTV = Contribution Margin × 預期終身訂單數",
+      connects: [
+        "讓你能負擔超過第一筆訂單 CM 的 CAC",
+        "高度依賴留存率與回購率",
+        "但：LTV 是預測值，Working Capital 是現在就要的現金"
+      ]
+    },
+    wc: {
+      tag: "WC",
+      title: "營運資金 · Working Capital",
+      def: "你支撐庫存和日常營運所需要的現金（或可動用的資金）— 就算帳面上有獲利也一樣。單位經濟學再漂亮，現金被卡在貨櫃和倉庫裡，公司也會倒。",
+      formula: "WC 需求 ≈ COGS × 庫存天數 × 訂單速度",
+      connects: [
+        "COGS 愈高、庫存週期愈長，需求愈大",
+        "就算 LTV/CAC 很漂亮，也會限制你能放多大",
+        "很多『有獲利』的品牌還要去借錢，原因就在這"
+      ]
+    },
+    inv: {
+      tag: "INV",
+      title: "庫存週轉 · Inventory Cycle / Turn",
+      def: "你的現金被卡在產品上、要多久才賣掉。庫存太多就是現金躺在貨架上；缺貨會打斷成長動能，還會讓 CAC 變得更難看 — 因為你已經花錢把顧客拉來了，卻沒貨可出。",
+      formula: "庫存週轉率 = COGS ÷ 平均庫存 · 週期 = 365 ÷ 週轉率",
+      connects: [
+        "直接成倍放大你的 Working Capital 需求",
+        "週轉慢 = 現金被掐住；週轉快 = 可以加碼買流量",
+        "缺貨會回頭吞掉你的 CAC 效率"
+      ]
+    },
+    ue: {
+      tag: "UE",
+      title: "單位經濟學 · Unit Economics",
+      def: "整張地圖的全貌 — 從一個顧客、一筆訂單身上，扣掉所有為了服務他們而花的錢之後，你真正賺到多少。這頁上其他每個指標，都是輸入這一個數字的變數。",
+      formula: "每位顧客 UE ≈ (AOV − COGS) − CAC，再 × 回購",
+      connects: [
+        "AOV、COGS、CAC 是它的直接輸入",
+        "LTV 把它延伸到回購之後的整段顧客生命週期",
+        "Working Capital 決定你有沒有現金做下一批訂單"
+      ]
+    }
+  };
+
+  // ── State ──────────────────────────────────────────────────────
+  const state = {
+    aov: 80,
+    cogsPct: 35,
+    cac: 35,
+    repeat: 1.95,
+    invDays: 60,
+    monthlyOrders: 700  // implicit — for working-capital calc
+  };
+
+  const fmt$ = n => "$" + Math.round(n).toLocaleString();
+  const fmt$2 = n => "$" + n.toFixed(2);
+
+  function recompute() {
+    const cogs = state.aov * state.cogsPct / 100;
+    const cm = state.aov - cogs;
+    const cmPct = cm / state.aov * 100;
+    const ltv = cm * state.repeat;
+    const ueFirst = cm - state.cac;            // first-order unit economics
+    const ueLifetime = ltv - state.cac;        // over the whole customer life
+    const ratio = state.cac > 0 ? ltv / state.cac : 99;
+    const turns = 365 / state.invDays;
+    // Working capital ≈ COGS × monthly orders × (inventory days / 30)
+    const wc = cogs * state.monthlyOrders * (state.invDays / 30);
+
+    // ── Update node values
+    document.getElementById("v-aov").textContent = fmt$2(state.aov);
+    document.getElementById("v-cogs").textContent = fmt$2(cogs);
+    document.getElementById("v-cm").textContent = fmt$2(cm);
+    document.getElementById("v-cm-pct").textContent = cmPct.toFixed(0) + "%";
+    document.getElementById("v-cac").textContent = fmt$2(state.cac);
+    document.getElementById("v-ltv").textContent = fmt$2(ltv);
+    document.getElementById("v-ue").textContent =
+      (ueLifetime >= 0 ? "+" : "") + fmt$2(ueLifetime).replace("$-", "−$") + " / 顧客";
+    document.getElementById("v-wc").textContent =
+      "$" + (wc >= 1000 ? (wc/1000).toFixed(0) + "k" : Math.round(wc)) + " 卡在貨上";
+    document.getElementById("v-inv").textContent =
+      state.invDays + " 天 · 一年 " + turns.toFixed(1) + " 次";
+
+    // ── Update display labels
+    document.getElementById("d-aov").textContent = "$" + state.aov;
+    document.getElementById("d-cogs").textContent = state.cogsPct + "%";
+    document.getElementById("d-cac").textContent = "$" + state.cac;
+    document.getElementById("d-repeat").textContent = state.repeat.toFixed(2);
+    document.getElementById("d-inv").textContent = state.invDays + " 天";
+
+    // ── Health pill
+    const health = document.getElementById("health");
+    const ht = document.getElementById("health-text");
+    const hr = document.getElementById("health-ratio");
+    hr.textContent = ratio.toFixed(2) + "×";
+    health.classList.remove("good", "warn", "bad");
+    if (ueLifetime < 0) {
+      health.classList.add("bad");
+      ht.textContent = "崩壞 — 每多一個新顧客，你就多賠一次";
+    } else if (ratio >= 3) {
+      health.classList.add("good");
+      ht.textContent = "健康 — 可以放心加碼買流量";
+    } else if (ratio >= 1.5) {
+      health.classList.add("warn");
+      ht.textContent = "勉強 — 回得了本，但放大會壓垮現金流";
+    } else {
+      health.classList.add("bad");
+      ht.textContent = "溺水 — CAC 把貢獻毛利幾乎吃光了";
+    }
+  }
+
+  // ── Wire sliders ───────────────────────────────────────────────
+  const bind = (id, key, parser = parseFloat) => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", () => {
+      state[key] = parser(el.value);
+      recompute();
+    });
+  };
+  bind("i-aov", "aov");
+  bind("i-cogs", "cogsPct");
+  bind("i-cac", "cac");
+  bind("i-repeat", "repeat");
+  bind("i-inv", "invDays");
+
+  // ── Wire node clicks ───────────────────────────────────────────
+  const nodes = document.querySelectorAll(".node");
+  function focusTerm(termKey) {
+    nodes.forEach(n => n.classList.toggle("active", n.dataset.term === termKey));
+    const t = TERMS[termKey];
+    if (!t) return;
+    document.getElementById("def-tag").textContent = t.tag;
+    document.getElementById("def-title").textContent = t.title;
+    document.getElementById("def-text").innerHTML = t.def;
+    document.getElementById("def-formula").innerHTML = t.formula;
+    const ul = document.getElementById("def-connects");
+    ul.innerHTML = t.connects.map(c => "<li>" + c + "</li>").join("");
+  }
+  nodes.forEach(n => n.addEventListener("click", () => focusTerm(n.dataset.term)));
+
+  // ── Presets ────────────────────────────────────────────────────
+  const PRESETS = {
+    healthy:      { aov: 95, cogsPct: 30, cac: 28, repeat: 2.4, invDays: 45 },
+    apparel:      { aov: 75, cogsPct: 38, cac: 42, repeat: 1.6, invDays: 110 },
+    subscription: { aov: 45, cogsPct: 32, cac: 60, repeat: 4.2, invDays: 30 },
+    broken:       { aov: 55, cogsPct: 52, cac: 48, repeat: 1.2, invDays: 140 }
+  };
+  document.querySelectorAll(".preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = PRESETS[btn.dataset.preset];
+      Object.assign(state, p);
+      document.getElementById("i-aov").value = state.aov;
+      document.getElementById("i-cogs").value = state.cogsPct;
+      document.getElementById("i-cac").value = state.cac;
+      document.getElementById("i-repeat").value = state.repeat;
+      document.getElementById("i-inv").value = state.invDays;
+      recompute();
+    });
+  });
+
+  // initial focus on Unit Economics (the umbrella concept)
+  focusTerm("ue");
+  recompute();
+</script>
+</body>
+</html>
