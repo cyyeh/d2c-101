@@ -382,6 +382,84 @@
     font-family: 'JetBrains Mono', monospace;
     text-align: center;
   }
+
+  /* ── Principles / Operating Playbook ── */
+  .principles {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--line);
+  }
+  .principles-header {
+    margin-bottom: 28px;
+    max-width: 760px;
+  }
+  .principles-header h2 {
+    font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  .principles-header p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .principle {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+    background: var(--bg-card);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .principle:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow);
+  }
+  .principle .p-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .principle h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: -0.005em;
+  }
+  .principle p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  /* source attribution */
+  .source {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-mute);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .source a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .source a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -542,7 +620,57 @@
     </div>
   </div>
 
+  <section class="principles">
+    <div class="principles-header">
+      <div class="eyebrow">經營要點 · Operating Playbook</div>
+      <h2>八個指標背後的實戰提醒</h2>
+      <p>數字背後的決策原則 — 怎麼定價、怎麼打折、怎麼管庫存和現金流。</p>
+    </div>
+    <div class="principles-grid">
+
+      <div class="principle">
+        <div class="p-tag">定價</div>
+        <h4>別用成本加成定價</h4>
+        <p>顧客根本不知道你的成本。用市場行情 + 品牌定位定價，把多賺到的空間轉去買流量。每年順勢漲 3–5% 是合理的節奏。</p>
+      </div>
+
+      <div class="principle">
+        <div class="p-tag">毛利</div>
+        <h4>守住 15–20% 淨利</h4>
+        <p>最低也要 12–15%。電商太波動 — 一波運費、關稅、廣告漲價就能把貼著損益兩平線跑的品牌打到地板上。</p>
+      </div>
+
+      <div class="principle">
+        <div class="p-tag">折扣</div>
+        <h4>少打 %off，多用滿額贈</h4>
+        <p>百分比折扣會把演算法優化給折扣獵人，回頭很難。維持乾淨的折扣階梯（例：沉睡 3 個月才出大刀），其他時候用滿額禮、bundle 取代降價。</p>
+      </div>
+
+      <div class="principle">
+        <div class="p-tag">履約</div>
+        <h4>每 6 個月重新比運費</h4>
+        <p>UPS、FedEx、Amazon 物流、區域業者都拿來議價一輪。SKU 數量還沒到自建倉划算前，3PL 通常便宜；到了之後反過來。</p>
+      </div>
+
+      <div class="principle">
+        <div class="p-tag">庫存</div>
+        <h4>把持有成本推給供應商</h4>
+        <p>談 net-60、入庫後才開始計天數，把現金壓力往上游推。旺季前備 buffer，過季排好清倉節奏 — 季節性品類賣不掉的庫存是純現金流出。</p>
+      </div>
+
+      <div class="principle">
+        <div class="p-tag">融資</div>
+        <h4>別吊死在單一融資</h4>
+        <p>就算帳面有獲利，credit line 也可能因為對方 underwriting 改變被抽掉。多備幾個外部資金來源，避免一場政策變動就把 working capital 切斷。</p>
+      </div>
+
+    </div>
+  </section>
+
   <div class="footer-hint">點擊左側任何節點看定義 · 拉動滑桿測試不同情境</div>
+  <div class="source">
+    資料整理自 <a href="https://mailchimp.com/marketing-glossary/ecommerce-playbook/#Chapter_3%3A_How_to_get_your_unit_economics_right" target="_blank" rel="noopener">Mailchimp Ecommerce Playbook · Chapter 3 — How to get your unit economics right</a>（with Mehtab Bhogal · Karta Ventures）
+  </div>
 </div>
 
 <script>
@@ -589,7 +717,8 @@
       connects: [
         "必須由 Contribution Margin 賺回來（一張或多張單內）",
         "LTV ÷ CAC 是經典的健康比例（目標 ≥ 3×）",
-        "AOV 和 CM 決定 CAC 安全上限可以拉多高"
+        "AOV 和 CM 決定 CAC 安全上限可以拉多高",
+        "業界現實：Meta CAC 從 2016 ~$5 漲到今天 $40–$60（依品類）— AOV 撐不起這條線就會被擠出市場"
       ]
     },
     ltv: {
@@ -633,7 +762,8 @@
       connects: [
         "AOV、COGS、CAC 是它的直接輸入",
         "LTV 把它延伸到回購之後的整段顧客生命週期",
-        "Working Capital 決定你有沒有現金做下一批訂單"
+        "Working Capital 決定你有沒有現金做下一批訂單",
+        "整體淨利目標 15–20%（最低 12–15%）— 留 cushion 應對運費、關稅、廣告成本的波動"
       ]
     }
   };
