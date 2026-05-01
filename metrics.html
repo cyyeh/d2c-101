@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -43,6 +43,39 @@
     max-width: 1240px;
     margin: 0 auto;
     padding: 56px 32px 96px;
+    position: relative;
+  }
+
+  /* ── Language toggle ── */
+  .lang-toggle {
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-card);
+    box-shadow: 0 1px 2px oklch(20% 0.01 60 / 0.04);
+    z-index: 10;
+  }
+  .lang-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    transition: background .15s, color .15s;
+  }
+  .lang-btn + .lang-btn { border-left: 1px solid var(--line); }
+  .lang-btn:hover { color: var(--accent); }
+  .lang-btn.active { background: var(--accent-soft); color: var(--accent); }
+  @media (max-width: 600px) {
+    .lang-toggle { top: 16px; right: 16px; }
   }
 
   /* ── Header ── */
@@ -73,12 +106,43 @@
   /* ── Layout ── */
   .layout {
     display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 32px;
     align-items: start;
   }
   @media (max-width: 980px) {
     .layout { grid-template-columns: 1fr; }
+
+    /* Definition becomes a right-side drawer on mobile */
+    .def-card {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(440px, 92vw);
+      max-width: 92vw;
+      margin: 0;
+      z-index: 100;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform .25s ease;
+      border-radius: 14px 0 0 14px;
+      border-right: none;
+      box-shadow: -8px 0 32px oklch(20% 0.01 60 / 0.12);
+      min-height: 0;
+    }
+    .def-card.open { transform: translateX(0); }
+    .def-close { display: flex; }
+    .def-backdrop {
+      position: fixed;
+      inset: 0;
+      background: oklch(20% 0.01 60 / 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      z-index: 99;
+    }
+    .def-backdrop.open { opacity: 1; pointer-events: auto; }
   }
 
   /* ── Flow diagram ── */
@@ -240,7 +304,7 @@
   }
 
   /* ── Right column: definition + inputs ── */
-  .right-col { display: flex; flex-direction: column; gap: 24px; }
+  .right-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 
   .def-card {
     border: 1px solid var(--line);
@@ -248,7 +312,31 @@
     padding: 28px;
     background: var(--bg-card);
     min-height: 260px;
+    min-width: 0;
+    position: relative;
   }
+  .def-close {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--ink-soft);
+    line-height: 1;
+    padding: 0;
+    font-family: inherit;
+    z-index: 1;
+    transition: border-color .15s, color .15s;
+  }
+  .def-close:hover { border-color: var(--line-strong); color: var(--ink); }
   .def-card .term-tag {
     display: inline-block;
     font-family: 'JetBrains Mono', monospace;
@@ -376,7 +464,7 @@
 
   /* footer hint */
   .footer-hint {
-    margin-top: 36px;
+    margin-top: 4px;
     font-size: 12px;
     color: var(--ink-mute);
     font-family: 'JetBrains Mono', monospace;
@@ -408,7 +496,7 @@
   }
   .principles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 16px;
   }
   .principle {
@@ -460,15 +548,71 @@
     border-bottom: 1px solid var(--line-strong);
   }
   .source a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Mobile breakpoints ── */
+  @media (max-width: 760px) {
+    .page { padding: 56px 20px 64px; }
+    header.intro { margin-bottom: 32px; }
+    .flow-card { padding: 20px; position: static; }
+    .def-card { padding: 22px 20px; min-height: 0; }
+    .def-card h3 { font-size: 20px; }
+    .inputs-card { padding: 20px; }
+    .principles { margin-top: 48px; padding-top: 36px; }
+    .principle { padding: 18px 20px; }
+    .node { padding: 12px 14px; gap: 10px; }
+    .node .tag { width: 50px; }
+    .op { padding: 0 14px; }
+    .health {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .health .h-ratio {
+      font-size: 18px;
+      justify-self: start;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .page { padding: 52px 16px 48px; }
+    h1 { font-size: 28px; }
+    header.intro p { font-size: 15px; }
+    .lang-toggle { top: 12px; right: 12px; }
+    .lang-btn { padding: 5px 10px; font-size: 10px; }
+    .node {
+      padding: 11px 12px;
+      grid-template-columns: 44px 1fr auto;
+      gap: 8px;
+    }
+    .node .tag { width: auto; font-size: 9px; }
+    .node .label { font-size: 13px; }
+    .node .val { font-size: 12px; }
+    .node .val .delta { font-size: 10px; }
+    .op {
+      padding: 0 12px;
+      grid-template-columns: 44px 1fr;
+    }
+    .op .op-sym { width: 44px; font-size: 12px; }
+    .flow-card { padding: 18px 16px; }
+    .principles-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <div class="page">
 
+  <div class="lang-toggle" role="group" aria-label="Language">
+    <button class="lang-btn" data-lang="zh" type="button" title="繁體中文">中</button>
+    <button class="lang-btn" data-lang="en" type="button" title="English">EN</button>
+  </div>
+
   <header class="intro">
-    <div class="eyebrow">D2C 財務 · 詞彙表 &amp; 連動關係</div>
-    <h1>每個 D2C 品牌背後的八個關鍵數字，是怎麼串在一起的。</h1>
-    <p>下方每個指標都是同一條鏈上的節點：每筆訂單的營收流入，扣掉各種成本後，剩下的錢要拿去買下一個顧客。點擊任一個術語看定義，或拉動滑桿看整條鏈如何同步反應。</p>
+    <div class="eyebrow"
+         data-zh="D2C 財務 · 詞彙表 &amp; 連動關係"
+         data-en="D2C Finance · Glossary &amp; Flow">D2C 財務 &middot; 詞彙表 &amp; 連動關係</div>
+    <h1 data-zh="每個 D2C 品牌背後的八個關鍵數字，是怎麼串在一起的。"
+        data-en="The eight numbers behind every D2C brand, and how they wire together.">每個 D2C 品牌背後的八個關鍵數字，是怎麼串在一起的。</h1>
+    <p data-zh="下方每個指標都是同一條鏈上的節點：每筆訂單的營收流入，扣掉各種成本後，剩下的錢要拿去買下一個顧客。點擊任一個術語看定義，或拉動滑桿看整條鏈如何同步反應。"
+       data-en="Each metric below is a node on the same chain: revenue from one order flows in, costs come out, and what's left has to fund the next customer. Click any term for the definition, or drag a slider to watch the whole chain react.">下方每個指標都是同一條鏈上的節點：每筆訂單的營收流入，扣掉各種成本後，剩下的錢要拿去買下一個顧客。點擊任一個術語看定義，或拉動滑桿看整條鏈如何同步反應。</p>
   </header>
 
   <div class="layout">
@@ -476,66 +620,70 @@
     <!-- ── Left: flow diagram ── -->
     <div class="flow-card">
       <div class="flow-title">
-        <h2>單位經濟學鏈條</h2>
-        <span class="hint">每筆訂單 →</span>
+        <h2 data-zh="單位經濟學鏈條" data-en="The Unit-Economics Chain">單位經濟學鏈條</h2>
+        <span class="hint" data-zh="每筆訂單 →" data-en="Per order →">每筆訂單 →</span>
       </div>
-      <p class="flow-sub">由上往下閱讀，每一列是一個指標，左側是它們之間的數學運算。</p>
+      <p class="flow-sub"
+         data-zh="由上往下閱讀，每一列是一個指標，左側是它們之間的數學運算。"
+         data-en="Read top to bottom — each row is a metric; the operators on the left show how they connect.">由上往下閱讀，每一列是一個指標，左側是它們之間的數學運算。</p>
 
       <div class="flow" id="flow">
 
         <div class="node" data-kind="revenue" data-term="aov">
           <span class="tag">AOV</span>
-          <span class="label">平均訂單金額</span>
+          <span class="label" data-zh="平均訂單金額" data-en="Average Order Value">平均訂單金額</span>
           <span class="val mono" id="v-aov">$80.00</span>
         </div>
 
-        <div class="op"><span class="op-sym">−</span><span class="op-text">扣掉履約成本</span></div>
+        <div class="op"><span class="op-sym">−</span><span class="op-text" data-zh="扣掉履約成本" data-en="subtract fulfillment cost">扣掉履約成本</span></div>
 
         <div class="node" data-kind="cost" data-term="cogs">
           <span class="tag">COGS</span>
-          <span class="label">商品銷售成本</span>
+          <span class="label" data-zh="商品銷售成本" data-en="Cost of Goods Sold">商品銷售成本</span>
           <span class="val mono" id="v-cogs">$28.00</span>
         </div>
 
-        <div class="op"><span class="op-sym">=</span><span class="op-text">剩下的就是貢獻</span></div>
+        <div class="op"><span class="op-sym">=</span><span class="op-text" data-zh="剩下的就是貢獻" data-en="what's left = contribution">剩下的就是貢獻</span></div>
 
         <div class="node" data-kind="contribution" data-term="cm">
           <span class="tag">CM</span>
-          <span class="label">貢獻毛利</span>
+          <span class="label" data-zh="貢獻毛利" data-en="Contribution Margin">貢獻毛利</span>
           <span class="val mono"><span id="v-cm">$52.00</span><span class="delta" id="v-cm-pct">65%</span></span>
         </div>
 
-        <div class="op"><span class="op-sym">−</span><span class="op-text">花錢把顧客拉進來</span></div>
+        <div class="op"><span class="op-sym">−</span><span class="op-text" data-zh="花錢把顧客拉進來" data-en="spend to bring them in">花錢把顧客拉進來</span></div>
 
         <div class="node" data-kind="cost" data-term="cac">
           <span class="tag">CAC</span>
-          <span class="label">獲客成本</span>
+          <span class="label" data-zh="獲客成本" data-en="Customer Acquisition Cost">獲客成本</span>
           <span class="val mono" id="v-cac">$35.00</span>
         </div>
 
-        <div class="op"><span class="op-sym">×</span><span class="op-text">顧客回購、重複貢獻</span></div>
+        <div class="op"><span class="op-sym">×</span><span class="op-text" data-zh="顧客回購、重複貢獻" data-en="customers return; contribute again">顧客回購、重複貢獻</span></div>
 
         <div class="node" data-kind="revenue" data-term="ltv">
           <span class="tag">LTV</span>
-          <span class="label">顧客終身價值</span>
+          <span class="label" data-zh="顧客終身價值" data-en="Lifetime Value">顧客終身價值</span>
           <span class="val mono" id="v-ltv">$156.00</span>
         </div>
 
         <!-- separator -->
         <div style="height: 8px;"></div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); margin: 8px 0 4px; padding-left: 16px;">↓ 在背後支撐引擎運轉</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); margin: 8px 0 4px; padding-left: 16px;"
+             data-zh="↓ 在背後支撐引擎運轉"
+             data-en="↓ The engine running underneath">↓ 在背後支撐引擎運轉</div>
 
         <div class="node" data-kind="external" data-term="wc">
           <span class="tag">WC</span>
-          <span class="label">營運資金</span>
+          <span class="label" data-zh="營運資金" data-en="Working Capital">營運資金</span>
           <span class="val mono" id="v-wc">$42k 卡在貨上</span>
         </div>
 
-        <div class="op"><span class="op-sym">↻</span><span class="op-text">現金透過庫存循環回收</span></div>
+        <div class="op"><span class="op-sym">↻</span><span class="op-text" data-zh="現金透過庫存循環回收" data-en="cash cycles through inventory">現金透過庫存循環回收</span></div>
 
         <div class="node" data-kind="external" data-term="inv">
           <span class="tag">INV</span>
-          <span class="label">庫存週轉</span>
+          <span class="label" data-zh="庫存週轉" data-en="Inventory Turn">庫存週轉</span>
           <span class="val mono" id="v-inv">60 天 · 一年 6 次</span>
         </div>
 
@@ -543,14 +691,14 @@
 
         <div class="node" data-kind="contribution" data-term="ue" style="background: oklch(96% 0.04 40); border-color: oklch(80% 0.08 40);">
           <span class="tag">UE</span>
-          <span class="label">單位經濟學</span>
+          <span class="label" data-zh="單位經濟學" data-en="Unit Economics">單位經濟學</span>
           <span class="val mono" id="v-ue">$17 / 顧客</span>
         </div>
       </div>
 
       <div class="health" id="health">
         <div>
-          <div class="h-label">回本訊號 · LTV ÷ CAC</div>
+          <div class="h-label" data-zh="回本訊號 · LTV ÷ CAC" data-en="Payback signal · LTV ÷ CAC">回本訊號 · LTV ÷ CAC</div>
           <div class="h-value" id="health-text">健康 — 可以放心加碼買流量</div>
         </div>
         <div class="h-ratio" id="health-ratio">4.5×</div>
@@ -561,12 +709,13 @@
     <div class="right-col">
 
       <div class="def-card" id="def-card">
+        <button class="def-close" type="button" id="def-close" aria-label="Close">×</button>
         <span class="term-tag" id="def-tag">UE</span>
         <h3 id="def-title">單位經濟學 · Unit Economics</h3>
         <p class="def-text" id="def-text">從一個顧客、一筆訂單身上，扣掉所有為了服務他們而花的錢之後，你真正賺到多少。如果這個數字不是正的，做愈大就賠愈快。</p>
         <div class="formula" id="def-formula">UE = (AOV − COGS) − CAC + 回購貢獻</div>
         <div class="connects">
-          <strong>連動關係</strong>
+          <strong id="def-connects-label" data-zh="連動關係" data-en="Connections">連動關係</strong>
           <ul id="def-connects">
             <li>AOV、COGS、CAC 是它的直接輸入</li>
             <li>LTV 把它延伸到回購之後的整段顧客生命週期</li>
@@ -576,199 +725,350 @@
       </div>
 
       <div class="inputs-card">
-        <h3>試試各個變數</h3>
-        <p class="sub">拉動任何滑桿，所有節點都會即時更新。</p>
+        <h3 data-zh="試試各個變數" data-en="Try the variables">試試各個變數</h3>
+        <p class="sub"
+           data-zh="拉動任何滑桿，所有節點都會即時更新。"
+           data-en="Drag any slider — every node updates live.">拉動任何滑桿，所有節點都會即時更新。</p>
 
         <div class="input-row">
-          <label for="i-aov">平均訂單金額 (AOV)</label>
+          <label for="i-aov" data-zh="平均訂單金額 (AOV)" data-en="Average Order Value (AOV)">平均訂單金額 (AOV)</label>
           <span class="val-display" id="d-aov">$80</span>
           <input type="range" id="i-aov" min="20" max="200" step="1" value="80">
         </div>
 
         <div class="input-row">
-          <label for="i-cogs">COGS 佔 AOV 的比例</label>
+          <label for="i-cogs" data-zh="COGS 佔 AOV 的比例" data-en="COGS as % of AOV">COGS 佔 AOV 的比例</label>
           <span class="val-display" id="d-cogs">35%</span>
           <input type="range" id="i-cogs" min="10" max="70" step="1" value="35">
         </div>
 
         <div class="input-row">
-          <label for="i-cac">獲客成本 (CAC)</label>
+          <label for="i-cac" data-zh="獲客成本 (CAC)" data-en="Customer Acquisition Cost (CAC)">獲客成本 (CAC)</label>
           <span class="val-display" id="d-cac">$35</span>
           <input type="range" id="i-cac" min="5" max="120" step="1" value="35">
         </div>
 
         <div class="input-row">
-          <label for="i-repeat">每位顧客一生會下幾次訂單</label>
+          <label for="i-repeat" data-zh="每位顧客一生會下幾次訂單" data-en="Orders per customer over their lifetime">每位顧客一生會下幾次訂單</label>
           <span class="val-display" id="d-repeat">1.95</span>
           <input type="range" id="i-repeat" min="1" max="5" step="0.05" value="1.95">
         </div>
 
         <div class="input-row">
-          <label for="i-inv">庫存週期（現金卡在貨架上多少天）</label>
+          <label for="i-inv" data-zh="庫存週期（現金卡在貨架上多少天）" data-en="Inventory cycle (days cash sits on shelves)">庫存週期（現金卡在貨架上多少天）</label>
           <span class="val-display" id="d-inv">60 天</span>
           <input type="range" id="i-inv" min="14" max="180" step="1" value="60">
         </div>
 
         <div class="presets">
-          <button class="preset" data-preset="healthy">健康品牌</button>
-          <button class="preset" data-preset="apparel">服飾現實</button>
-          <button class="preset" data-preset="subscription">訂閱制</button>
-          <button class="preset" data-preset="broken">單位經濟崩壞</button>
+          <button class="preset" data-preset="healthy" data-zh="健康品牌" data-en="Healthy brand">健康品牌</button>
+          <button class="preset" data-preset="apparel" data-zh="服飾現實" data-en="Apparel reality">服飾現實</button>
+          <button class="preset" data-preset="subscription" data-zh="訂閱制" data-en="Subscription">訂閱制</button>
+          <button class="preset" data-preset="broken" data-zh="單位經濟崩壞" data-en="Broken unit economics">單位經濟崩壞</button>
         </div>
       </div>
+
+      <div class="footer-hint"
+           data-zh="點擊左側任何節點看定義 · 拉動滑桿測試不同情境"
+           data-en="Click any node on the left for the definition · drag a slider to test a scenario">點擊左側任何節點看定義 · 拉動滑桿測試不同情境</div>
 
     </div>
   </div>
 
   <section class="principles">
     <div class="principles-header">
-      <div class="eyebrow">經營要點 · Operating Playbook</div>
-      <h2>八個指標背後的實戰提醒</h2>
-      <p>數字背後的決策原則 — 怎麼定價、怎麼打折、怎麼管庫存和現金流。</p>
+      <div class="eyebrow"
+           data-zh="經營要點 · Operating Playbook"
+           data-en="Operating Playbook">經營要點 · Operating Playbook</div>
+      <h2 data-zh="八個指標背後的實戰提醒"
+          data-en="Field notes behind the eight metrics">八個指標背後的實戰提醒</h2>
+      <p data-zh="數字背後的決策原則 — 怎麼定價、怎麼打折、怎麼管庫存和現金流。"
+         data-en="The decision rules behind the numbers — how to price, discount, manage inventory and cash flow.">數字背後的決策原則 — 怎麼定價、怎麼打折、怎麼管庫存和現金流。</p>
     </div>
     <div class="principles-grid">
 
       <div class="principle">
-        <div class="p-tag">定價</div>
-        <h4>別用成本加成定價</h4>
-        <p>顧客根本不知道你的成本。用市場行情 + 品牌定位定價，把多賺到的空間轉去買流量。每年順勢漲 3–5% 是合理的節奏。</p>
+        <div class="p-tag" data-zh="定價" data-en="Pricing">定價</div>
+        <h4 data-zh="別用成本加成定價" data-en="Skip cost-plus pricing">別用成本加成定價</h4>
+        <p data-zh="顧客根本不知道你的成本。用市場行情 + 品牌定位定價，把多賺到的空間轉去買流量。每年順勢漲 3–5% 是合理的節奏。"
+           data-en="Customers have no idea what your cost is. Price off the market and your brand position; spend the extra room buying traffic. A 3–5% bump every year keeps the rhythm.">顧客根本不知道你的成本。用市場行情 + 品牌定位定價，把多賺到的空間轉去買流量。每年順勢漲 3–5% 是合理的節奏。</p>
       </div>
 
       <div class="principle">
-        <div class="p-tag">毛利</div>
-        <h4>守住 15–20% 淨利</h4>
-        <p>最低也要 12–15%。電商太波動 — 一波運費、關稅、廣告漲價就能把貼著損益兩平線跑的品牌打到地板上。</p>
+        <div class="p-tag" data-zh="毛利" data-en="Margin">毛利</div>
+        <h4 data-zh="守住 15–20% 淨利" data-en="Hold 15–20% net margin">守住 15–20% 淨利</h4>
+        <p data-zh="最低也要 12–15%。電商太波動 — 一波運費、關稅、廣告漲價就能把貼著損益兩平線跑的品牌打到地板上。"
+           data-en="Floor at 12–15%. Ecommerce is volatile — one freight, tariff, or ad-cost spike will pin a break-even brand to the floor.">最低也要 12–15%。電商太波動 — 一波運費、關稅、廣告漲價就能把貼著損益兩平線跑的品牌打到地板上。</p>
       </div>
 
       <div class="principle">
-        <div class="p-tag">折扣</div>
-        <h4>少打 %off，多用滿額贈</h4>
-        <p>百分比折扣會把演算法優化給折扣獵人，回頭很難。維持乾淨的折扣階梯（例：沉睡 3 個月才出大刀），其他時候用滿額禮、bundle 取代降價。</p>
+        <div class="p-tag" data-zh="折扣" data-en="Discounts">折扣</div>
+        <h4 data-zh="少打 %off，多用滿額贈" data-en="Less %off, more gift-with-purchase">少打 %off，多用滿額贈</h4>
+        <p data-zh="百分比折扣會把演算法優化給折扣獵人，回頭很難。維持乾淨的折扣階梯（例：沉睡 3 個月才出大刀），其他時候用滿額禮、bundle 取代降價。"
+           data-en="%off teaches the algorithm to optimize for bargain hunters — hard to walk back. Keep a clean discount ladder (e.g. nothing aggressive until a customer's been dormant 3 months); use threshold gifts and bundles the rest of the time.">百分比折扣會把演算法優化給折扣獵人，回頭很難。維持乾淨的折扣階梯（例：沉睡 3 個月才出大刀），其他時候用滿額禮、bundle 取代降價。</p>
       </div>
 
       <div class="principle">
-        <div class="p-tag">履約</div>
-        <h4>每 6 個月重新比運費</h4>
-        <p>UPS、FedEx、Amazon 物流、區域業者都拿來議價一輪。SKU 數量還沒到自建倉划算前，3PL 通常便宜；到了之後反過來。</p>
+        <div class="p-tag" data-zh="履約" data-en="Fulfillment">履約</div>
+        <h4 data-zh="每 6 個月重新比運費" data-en="Re-shop shipping every 6 months">每 6 個月重新比運費</h4>
+        <p data-zh="UPS、FedEx、Amazon 物流、區域業者都拿來議價一輪。SKU 數量還沒到自建倉划算前，3PL 通常便宜；到了之後反過來。"
+           data-en="Put UPS, FedEx, Amazon Logistics, and regional carriers back on the table. 3PL is usually cheaper until SKU count tips the math the other way.">UPS、FedEx、Amazon 物流、區域業者都拿來議價一輪。SKU 數量還沒到自建倉划算前，3PL 通常便宜；到了之後反過來。</p>
       </div>
 
       <div class="principle">
-        <div class="p-tag">庫存</div>
-        <h4>把持有成本推給供應商</h4>
-        <p>談 net-60、入庫後才開始計天數，把現金壓力往上游推。旺季前備 buffer，過季排好清倉節奏 — 季節性品類賣不掉的庫存是純現金流出。</p>
+        <div class="p-tag" data-zh="庫存" data-en="Inventory">庫存</div>
+        <h4 data-zh="把持有成本推給供應商" data-en="Push holding cost upstream">把持有成本推給供應商</h4>
+        <p data-zh="談 net-60、入庫後才開始計天數，把現金壓力往上游推。旺季前備 buffer，過季排好清倉節奏 — 季節性品類賣不掉的庫存是純現金流出。"
+           data-en="Negotiate net-60 starting on warehouse arrival — push the cash pressure upstream. Stock buffer before peak; clear schedule after — leftover seasonal stock is pure cash bleed.">談 net-60、入庫後才開始計天數，把現金壓力往上游推。旺季前備 buffer，過季排好清倉節奏 — 季節性品類賣不掉的庫存是純現金流出。</p>
       </div>
 
       <div class="principle">
-        <div class="p-tag">融資</div>
-        <h4>別吊死在單一融資</h4>
-        <p>就算帳面有獲利，credit line 也可能因為對方 underwriting 改變被抽掉。多備幾個外部資金來源，避免一場政策變動就把 working capital 切斷。</p>
+        <div class="p-tag" data-zh="融資" data-en="Financing">融資</div>
+        <h4 data-zh="別吊死在單一融資" data-en="Don't lean on one lender">別吊死在單一融資</h4>
+        <p data-zh="就算帳面有獲利，credit line 也可能因為對方 underwriting 改變被抽掉。多備幾個外部資金來源，避免一場政策變動就把 working capital 切斷。"
+           data-en="Profitability on paper doesn't protect you — a credit line can vanish when the lender's underwriting shifts. Keep multiple capital sources so one policy change can't cut off your working capital.">就算帳面有獲利，credit line 也可能因為對方 underwriting 改變被抽掉。多備幾個外部資金來源，避免一場政策變動就把 working capital 切斷。</p>
       </div>
 
     </div>
   </section>
 
-  <div class="footer-hint">點擊左側任何節點看定義 · 拉動滑桿測試不同情境</div>
   <div class="source">
-    資料整理自 <a href="https://mailchimp.com/marketing-glossary/ecommerce-playbook/#Chapter_3%3A_How_to_get_your_unit_economics_right" target="_blank" rel="noopener">Mailchimp Ecommerce Playbook · Chapter 3 — How to get your unit economics right</a>（with Mehtab Bhogal · Karta Ventures）
+    <span data-zh="資料整理自 " data-en="Compiled from ">資料整理自 </span><a href="https://mailchimp.com/marketing-glossary/ecommerce-playbook/#Chapter_3%3A_How_to_get_your_unit_economics_right" target="_blank" rel="noopener">Mailchimp Ecommerce Playbook · Chapter 3 — How to get your unit economics right</a><span data-zh="（with Mehtab Bhogal · Karta Ventures）" data-en=" (with Mehtab Bhogal · Karta Ventures)">（with Mehtab Bhogal · Karta Ventures）</span>
   </div>
+
+  <div class="def-backdrop" id="def-backdrop" aria-hidden="true"></div>
 </div>
 
 <script>
-  // ── Definitions ────────────────────────────────────────────────
+  // ── Definitions (bilingual) ─────────────────────────────────────
   const TERMS = {
     aov: {
       tag: "AOV",
-      title: "平均訂單金額 · Average Order Value",
-      def: "顧客一次下單平均花多少錢。AOV 愈高，你愈有空間負擔更高的 CAC，不必賭顧客以後一定會回購。",
-      formula: "AOV = 總營收 ÷ 訂單數",
-      connects: [
-        "設下 COGS 的天花板（成本通常是 AOV 的某個 %）",
-        "直接決定每筆訂單的 Contribution Margin",
-        "AOV 愈高 → 同樣的回本期下，可以容忍的 CAC 也愈高"
-      ]
+      zh: {
+        title: "平均訂單金額 · Average Order Value",
+        def: "顧客一次下單平均花多少錢。AOV 愈高，你愈有空間負擔更高的 CAC，不必賭顧客以後一定會回購。",
+        formula: "AOV = 總營收 ÷ 訂單數",
+        connects: [
+          "設下 COGS 的天花板（成本通常是 AOV 的某個 %）",
+          "直接決定每筆訂單的 Contribution Margin",
+          "AOV 愈高 → 同樣的回本期下，可以容忍的 CAC 也愈高"
+        ]
+      },
+      en: {
+        title: "Average Order Value",
+        def: "How much a customer spends in one order, on average. The higher AOV is, the more room you have to absorb a bigger CAC without betting on future repeat purchases.",
+        formula: "AOV = Total revenue ÷ Number of orders",
+        connects: [
+          "Sets the ceiling on COGS (which is typically some % of AOV)",
+          "Directly determines per-order Contribution Margin",
+          "Higher AOV → at the same payback period, you can tolerate a higher CAC"
+        ]
+      }
     },
     cogs: {
       tag: "COGS",
-      title: "商品銷售成本 · Cost of Goods Sold",
-      def: "把產品送到顧客手上必須花的每一塊錢 — 製造、包材、運費、履約、金流手續費、關稅、退貨。不包含行銷費和員工薪水。",
-      formula: "COGS = 單位生產成本 + 包裝 + 運費 + 關稅 + 金流手續費",
-      connects: [
-        "直接從 AOV 扣掉，得到 Contribution Margin",
-        "決定你需要多少 Working Capital 來備庫存",
-        "關稅、海運費漲價，第一個就是打到這裡"
-      ]
+      zh: {
+        title: "商品銷售成本 · Cost of Goods Sold",
+        def: "把產品送到顧客手上必須花的每一塊錢 — 製造、包材、運費、履約、金流手續費、關稅、退貨。不包含行銷費和員工薪水。",
+        formula: "COGS = 單位生產成本 + 包裝 + 運費 + 關稅 + 金流手續費",
+        connects: [
+          "直接從 AOV 扣掉，得到 Contribution Margin",
+          "決定你需要多少 Working Capital 來備庫存",
+          "關稅、海運費漲價，第一個就是打到這裡"
+        ]
+      },
+      en: {
+        title: "Cost of Goods Sold",
+        def: "Every dollar required to put the product in the customer's hand — manufacturing, packaging, shipping, fulfillment, payment fees, tariffs, returns. Marketing and salaries don't count.",
+        formula: "COGS = Unit cost + Packaging + Shipping + Tariffs + Payment fees",
+        connects: [
+          "Subtracts from AOV to give you Contribution Margin",
+          "Drives how much Working Capital you need to hold inventory",
+          "Tariff and freight hikes hit here first"
+        ]
+      }
     },
     cm: {
       tag: "CM",
-      title: "貢獻毛利 · Contribution Margin",
-      def: "扣掉所有「把產品送到顧客手上」的成本之後剩下的錢。這才是你真正可以拿去做付費投放的本金。CM 太小，再會買廣告也救不了你。",
-      formula: "Contribution Margin = AOV − COGS",
-      connects: [
-        "必須要大於 CAC，最好是好幾倍",
-        "定義了你能承受的 CAC 上限",
-        "在回購之後，會累加成 LTV"
-      ]
+      zh: {
+        title: "貢獻毛利 · Contribution Margin",
+        def: "扣掉所有「把產品送到顧客手上」的成本之後剩下的錢。這才是你真正可以拿去做付費投放的本金。CM 太小，再會買廣告也救不了你。",
+        formula: "Contribution Margin = AOV − COGS",
+        connects: [
+          "必須要大於 CAC，最好是好幾倍",
+          "定義了你能承受的 CAC 上限",
+          "在回購之後，會累加成 LTV"
+        ]
+      },
+      en: {
+        title: "Contribution Margin",
+        def: "What's left after every cost of getting the product to the customer. This is the real pool you can put into paid acquisition. If CM is small, no amount of clever ad-buying will save you.",
+        formula: "Contribution Margin = AOV − COGS",
+        connects: [
+          "Has to be greater than CAC — ideally several times over",
+          "Defines the ceiling on a sustainable CAC",
+          "Compounds into LTV after repeat purchases"
+        ]
+      }
     },
     cac: {
       tag: "CAC",
-      title: "獲客成本 · Customer Acquisition Cost",
-      def: "你為了拉到一個新顧客花的錢 — 廣告、代理商、素材、KOL、優惠券。不包含留存維護的支出。如果 CAC 超過第一張單的 Contribution Margin，你其實是在用現金補貼成長。",
-      formula: "CAC = 付費獲客花費 ÷ 新增顧客數",
-      connects: [
-        "必須由 Contribution Margin 賺回來（一張或多張單內）",
-        "LTV ÷ CAC 是經典的健康比例（目標 ≥ 3×）",
-        "AOV 和 CM 決定 CAC 安全上限可以拉多高",
-        "業界現實：Meta CAC 從 2016 ~$5 漲到今天 $40–$60（依品類）— AOV 撐不起這條線就會被擠出市場"
-      ]
+      zh: {
+        title: "獲客成本 · Customer Acquisition Cost",
+        def: "你為了拉到一個新顧客花的錢 — 廣告、代理商、素材、KOL、優惠券。不包含留存維護的支出。如果 CAC 超過第一張單的 Contribution Margin，你其實是在用現金補貼成長。",
+        formula: "CAC = 付費獲客花費 ÷ 新增顧客數",
+        connects: [
+          "必須由 Contribution Margin 賺回來（一張或多張單內）",
+          "LTV ÷ CAC 是經典的健康比例（目標 ≥ 3×）",
+          "AOV 和 CM 決定 CAC 安全上限可以拉多高",
+          "業界現實：Meta CAC 從 2016 ~$5 漲到今天 $40–$60（依品類）— AOV 撐不起這條線就會被擠出市場"
+        ]
+      },
+      en: {
+        title: "Customer Acquisition Cost",
+        def: "What you spend to land one new customer — ads, agencies, creative, influencers, coupons. Retention spend doesn't count. If CAC blows past the first order's contribution margin, you're subsidizing growth with cash.",
+        formula: "CAC = Paid acquisition spend ÷ New customers",
+        connects: [
+          "Has to be earned back from Contribution Margin (in one order or several)",
+          "LTV ÷ CAC is the classic health ratio (target ≥ 3×)",
+          "AOV and CM dictate how high the CAC ceiling can stretch",
+          "Reality check: Meta CAC has gone from ~$5 in 2016 to $40–$60 today (depending on category) — brands whose AOV can't carry that line get squeezed out"
+        ]
+      }
     },
     ltv: {
       tag: "LTV",
-      title: "顧客終身價值 · Lifetime Value",
-      def: "一個顧客一輩子下的所有訂單加起來，總共為你貢獻多少錢。顧客買得愈久、愈頻繁，今天能付的 CAC 就愈高。",
-      formula: "LTV = Contribution Margin × 預期終身訂單數",
-      connects: [
-        "讓你能負擔超過第一筆訂單 CM 的 CAC",
-        "高度依賴留存率與回購率",
-        "但：LTV 是預測值，Working Capital 是現在就要的現金"
-      ]
+      zh: {
+        title: "顧客終身價值 · Lifetime Value",
+        def: "一個顧客一輩子下的所有訂單加起來，總共為你貢獻多少錢。顧客買得愈久、愈頻繁，今天能付的 CAC 就愈高。",
+        formula: "LTV = Contribution Margin × 預期終身訂單數",
+        connects: [
+          "讓你能負擔超過第一筆訂單 CM 的 CAC",
+          "高度依賴留存率與回購率",
+          "但：LTV 是預測值，Working Capital 是現在就要的現金"
+        ]
+      },
+      en: {
+        title: "Lifetime Value",
+        def: "Everything a single customer spends with you over their entire relationship, added up. The longer and more often they buy, the higher the CAC you can pay today.",
+        formula: "LTV = Contribution Margin × Expected lifetime orders",
+        connects: [
+          "Lets you afford a CAC bigger than the first order's CM",
+          "Hinges on retention and repeat-purchase rates",
+          "But: LTV is a forecast — Working Capital is the cash you need right now"
+        ]
+      }
     },
     wc: {
       tag: "WC",
-      title: "營運資金 · Working Capital",
-      def: "你支撐庫存和日常營運所需要的現金（或可動用的資金）— 就算帳面上有獲利也一樣。單位經濟學再漂亮，現金被卡在貨櫃和倉庫裡，公司也會倒。",
-      formula: "WC 需求 ≈ COGS × 庫存天數 × 訂單速度",
-      connects: [
-        "COGS 愈高、庫存週期愈長，需求愈大",
-        "就算 LTV/CAC 很漂亮，也會限制你能放多大",
-        "很多『有獲利』的品牌還要去借錢，原因就在這"
-      ]
+      zh: {
+        title: "營運資金 · Working Capital",
+        def: "你支撐庫存和日常營運所需要的現金（或可動用的資金）— 就算帳面上有獲利也一樣。單位經濟學再漂亮，現金被卡在貨櫃和倉庫裡，公司也會倒。",
+        formula: "WC 需求 ≈ COGS × 庫存天數 × 訂單速度",
+        connects: [
+          "COGS 愈高、庫存週期愈長，需求愈大",
+          "就算 LTV/CAC 很漂亮，也會限制你能放多大",
+          "很多『有獲利』的品牌還要去借錢，原因就在這"
+        ]
+      },
+      en: {
+        title: "Working Capital",
+        def: "The cash (or accessible capital) you need to hold inventory and run the business — even when you're profitable on paper. Beautiful unit economics still kill you when cash is stuck on shelves and in shipping containers.",
+        formula: "WC need ≈ COGS × Inventory days × Order velocity",
+        connects: [
+          "Higher COGS or longer inventory cycles increase the requirement",
+          "Even with strong LTV/CAC, WC caps how big you can scale",
+          "It's why so many 'profitable' brands still need outside financing"
+        ]
+      }
     },
     inv: {
       tag: "INV",
-      title: "庫存週轉 · Inventory Cycle / Turn",
-      def: "你的現金被卡在產品上、要多久才賣掉。庫存太多就是現金躺在貨架上；缺貨會打斷成長動能，還會讓 CAC 變得更難看 — 因為你已經花錢把顧客拉來了，卻沒貨可出。",
-      formula: "庫存週轉率 = COGS ÷ 平均庫存 · 週期 = 365 ÷ 週轉率",
-      connects: [
-        "直接成倍放大你的 Working Capital 需求",
-        "週轉慢 = 現金被掐住；週轉快 = 可以加碼買流量",
-        "缺貨會回頭吞掉你的 CAC 效率"
-      ]
+      zh: {
+        title: "庫存週轉 · Inventory Cycle / Turn",
+        def: "你的現金被卡在產品上、要多久才賣掉。庫存太多就是現金躺在貨架上；缺貨會打斷成長動能，還會讓 CAC 變得更難看 — 因為你已經花錢把顧客拉來了，卻沒貨可出。",
+        formula: "庫存週轉率 = COGS ÷ 平均庫存 · 週期 = 365 ÷ 週轉率",
+        connects: [
+          "直接成倍放大你的 Working Capital 需求",
+          "週轉慢 = 現金被掐住；週轉快 = 可以加碼買流量",
+          "缺貨會回頭吞掉你的 CAC 效率"
+        ]
+      },
+      en: {
+        title: "Inventory Cycle / Turn",
+        def: "How long your cash sits in product before it sells. Too much inventory is cash on shelves; stockouts kill momentum and quietly torch CAC efficiency — you already paid to acquire the customer with nothing to buy.",
+        formula: "Turnover = COGS ÷ Avg. inventory · Cycle = 365 ÷ Turnover",
+        connects: [
+          "Multiplicatively expands your Working Capital need",
+          "Slow turn = cash trapped; fast turn = room to spend on traffic",
+          "Stockouts come back to eat your CAC efficiency"
+        ]
+      }
     },
     ue: {
       tag: "UE",
-      title: "單位經濟學 · Unit Economics",
-      def: "整張地圖的全貌 — 從一個顧客、一筆訂單身上，扣掉所有為了服務他們而花的錢之後，你真正賺到多少。這頁上其他每個指標，都是輸入這一個數字的變數。",
-      formula: "每位顧客 UE ≈ (AOV − COGS) − CAC，再 × 回購",
-      connects: [
-        "AOV、COGS、CAC 是它的直接輸入",
-        "LTV 把它延伸到回購之後的整段顧客生命週期",
-        "Working Capital 決定你有沒有現金做下一批訂單",
-        "整體淨利目標 15–20%（最低 12–15%）— 留 cushion 應對運費、關稅、廣告成本的波動"
-      ]
+      zh: {
+        title: "單位經濟學 · Unit Economics",
+        def: "整張地圖的全貌 — 從一個顧客、一筆訂單身上，扣掉所有為了服務他們而花的錢之後，你真正賺到多少。這頁上其他每個指標，都是輸入這一個數字的變數。",
+        formula: "每位顧客 UE ≈ (AOV − COGS) − CAC，再 × 回購",
+        connects: [
+          "AOV、COGS、CAC 是它的直接輸入",
+          "LTV 把它延伸到回購之後的整段顧客生命週期",
+          "Working Capital 決定你有沒有現金做下一批訂單",
+          "整體淨利目標 15–20%（最低 12–15%）— 留 cushion 應對運費、關稅、廣告成本的波動"
+        ]
+      },
+      en: {
+        title: "Unit Economics",
+        def: "The whole map at a glance — what you actually keep from one customer or one order after every cost of serving them. Every other metric on this page feeds into this one number.",
+        formula: "Per-customer UE ≈ (AOV − COGS) − CAC, then × repeat",
+        connects: [
+          "AOV, COGS, and CAC are its direct inputs",
+          "LTV stretches it across the whole customer life cycle",
+          "Working Capital decides whether you have cash for the next batch of orders",
+          "Aim for 15–20% net profit margin (12–15% floor) — leaves cushion for shipping, tariff, and ad-cost swings"
+        ]
+      }
+    }
+  };
+
+  // ── Localized strings for dynamic content ──────────────────────
+  const STR = {
+    zh: {
+      htmlLang: "zh-Hant",
+      title: "D2C 單位經濟學 — 八個指標的連動關係",
+      healthBroken: "崩壞 — 每多一個新顧客，你就多賠一次",
+      healthGood:   "健康 — 可以放心加碼買流量",
+      healthWarn:   "勉強 — 回得了本，但放大會壓垮現金流",
+      healthBad:    "溺水 — CAC 把貢獻毛利幾乎吃光了",
+      wcSuffix:     " 卡在貨上",
+      invDaysJoin:  " 天 · 一年 ",
+      invTurnsSuf:  " 次",
+      uePerCust:    " / 顧客",
+      daysSuffix:   " 天",
+    },
+    en: {
+      htmlLang: "en",
+      title: "D2C Unit Economics — How the Eight Numbers Connect",
+      healthBroken: "Broken — every new customer just adds to the loss",
+      healthGood:   "Healthy — safe to lean into paid traffic",
+      healthWarn:   "Tight — payback works, but scale will choke cash flow",
+      healthBad:    "Drowning — CAC has eaten the contribution margin",
+      wcSuffix:     " tied up in stock",
+      invDaysJoin:  " days · ",
+      invTurnsSuf:  " turns/yr",
+      uePerCust:    " / customer",
+      daysSuffix:   " days",
     }
   };
 
   // ── State ──────────────────────────────────────────────────────
+  let currentLang = (function () {
+    const saved = localStorage.getItem("d2c-lang");
+    return saved === "en" || saved === "zh" ? saved : "zh";
+  })();
+  let currentTerm = "ue";
+
   const state = {
     aov: 80,
     cogsPct: 35,
@@ -778,15 +1078,14 @@
     monthlyOrders: 700  // implicit — for working-capital calc
   };
 
-  const fmt$ = n => "$" + Math.round(n).toLocaleString();
   const fmt$2 = n => "$" + n.toFixed(2);
 
   function recompute() {
+    const s = STR[currentLang];
     const cogs = state.aov * state.cogsPct / 100;
     const cm = state.aov - cogs;
     const cmPct = cm / state.aov * 100;
     const ltv = cm * state.repeat;
-    const ueFirst = cm - state.cac;            // first-order unit economics
     const ueLifetime = ltv - state.cac;        // over the whole customer life
     const ratio = state.cac > 0 ? ltv / state.cac : 99;
     const turns = 365 / state.invDays;
@@ -801,18 +1100,18 @@
     document.getElementById("v-cac").textContent = fmt$2(state.cac);
     document.getElementById("v-ltv").textContent = fmt$2(ltv);
     document.getElementById("v-ue").textContent =
-      (ueLifetime >= 0 ? "+" : "") + fmt$2(ueLifetime).replace("$-", "−$") + " / 顧客";
+      (ueLifetime >= 0 ? "+" : "") + fmt$2(ueLifetime).replace("$-", "−$") + s.uePerCust;
     document.getElementById("v-wc").textContent =
-      "$" + (wc >= 1000 ? (wc/1000).toFixed(0) + "k" : Math.round(wc)) + " 卡在貨上";
+      "$" + (wc >= 1000 ? (wc/1000).toFixed(0) + "k" : Math.round(wc)) + s.wcSuffix;
     document.getElementById("v-inv").textContent =
-      state.invDays + " 天 · 一年 " + turns.toFixed(1) + " 次";
+      state.invDays + s.invDaysJoin + turns.toFixed(1) + s.invTurnsSuf;
 
     // ── Update display labels
     document.getElementById("d-aov").textContent = "$" + state.aov;
     document.getElementById("d-cogs").textContent = state.cogsPct + "%";
     document.getElementById("d-cac").textContent = "$" + state.cac;
     document.getElementById("d-repeat").textContent = state.repeat.toFixed(2);
-    document.getElementById("d-inv").textContent = state.invDays + " 天";
+    document.getElementById("d-inv").textContent = state.invDays + s.daysSuffix;
 
     // ── Health pill
     const health = document.getElementById("health");
@@ -822,16 +1121,16 @@
     health.classList.remove("good", "warn", "bad");
     if (ueLifetime < 0) {
       health.classList.add("bad");
-      ht.textContent = "崩壞 — 每多一個新顧客，你就多賠一次";
+      ht.textContent = s.healthBroken;
     } else if (ratio >= 3) {
       health.classList.add("good");
-      ht.textContent = "健康 — 可以放心加碼買流量";
+      ht.textContent = s.healthGood;
     } else if (ratio >= 1.5) {
       health.classList.add("warn");
-      ht.textContent = "勉強 — 回得了本，但放大會壓垮現金流";
+      ht.textContent = s.healthWarn;
     } else {
       health.classList.add("bad");
-      ht.textContent = "溺水 — CAC 把貢獻毛利幾乎吃光了";
+      ht.textContent = s.healthBad;
     }
   }
 
@@ -851,18 +1150,45 @@
 
   // ── Wire node clicks ───────────────────────────────────────────
   const nodes = document.querySelectorAll(".node");
-  function focusTerm(termKey) {
+  const drawerCard = document.getElementById("def-card");
+  const drawerBackdrop = document.getElementById("def-backdrop");
+  const isMobile = () => window.matchMedia("(max-width: 980px)").matches;
+
+  function openDrawer() {
+    drawerCard.classList.add("open");
+    drawerBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeDrawer() {
+    drawerCard.classList.remove("open");
+    drawerBackdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function focusTerm(termKey, fromClick = false) {
+    currentTerm = termKey;
     nodes.forEach(n => n.classList.toggle("active", n.dataset.term === termKey));
     const t = TERMS[termKey];
     if (!t) return;
+    const tl = t[currentLang];
     document.getElementById("def-tag").textContent = t.tag;
-    document.getElementById("def-title").textContent = t.title;
-    document.getElementById("def-text").innerHTML = t.def;
-    document.getElementById("def-formula").innerHTML = t.formula;
+    document.getElementById("def-title").textContent = tl.title;
+    document.getElementById("def-text").innerHTML = tl.def;
+    document.getElementById("def-formula").innerHTML = tl.formula;
     const ul = document.getElementById("def-connects");
-    ul.innerHTML = t.connects.map(c => "<li>" + c + "</li>").join("");
+    ul.innerHTML = tl.connects.map(c => "<li>" + c + "</li>").join("");
+    if (fromClick && isMobile()) openDrawer();
   }
-  nodes.forEach(n => n.addEventListener("click", () => focusTerm(n.dataset.term)));
+  nodes.forEach(n => n.addEventListener("click", () => focusTerm(n.dataset.term, true)));
+
+  document.getElementById("def-close").addEventListener("click", closeDrawer);
+  drawerBackdrop.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDrawer();
+  });
+  window.addEventListener("resize", () => {
+    if (!isMobile()) closeDrawer();
+  });
 
   // ── Presets ────────────────────────────────────────────────────
   const PRESETS = {
@@ -884,9 +1210,34 @@
     });
   });
 
-  // initial focus on Unit Economics (the umbrella concept)
-  focusTerm("ue");
-  recompute();
+  // ── Language toggle ────────────────────────────────────────────
+  function applyLang(lang) {
+    currentLang = lang;
+    localStorage.setItem("d2c-lang", lang);
+    document.documentElement.lang = STR[lang].htmlLang;
+    document.title = STR[lang].title;
+
+    // Swap all static text marked with data-zh / data-en
+    document.querySelectorAll("[data-zh]").forEach(el => {
+      const t = el.dataset[lang];
+      if (t !== undefined) el.textContent = t;
+    });
+
+    // Active state on the toggle buttons
+    document.querySelectorAll(".lang-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+
+    // Re-render dynamic sections in the new language
+    focusTerm(currentTerm);
+    recompute();
+  }
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+  });
+
+  // ── Initial render ─────────────────────────────────────────────
+  applyLang(currentLang);
 </script>
 </body>
 </html>
